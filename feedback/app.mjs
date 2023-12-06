@@ -12,12 +12,19 @@
  */
 
 export const lambdaHandler = async (event, context) => {
+    let message 
+    const params = event.body
+
+    if(params.name){
+        message = `Hello ${params.name}!`;
+    } else{
+        message = `Who is there?`;
+    }
+
     try {
         return {
             'statusCode': 200,
-            'body': JSON.stringify({
-                message: 'magic!',
-            })
+            'body': JSON.stringify({ message })
         }
     } catch (err) {
         console.log(err);
