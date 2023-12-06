@@ -17,6 +17,12 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
+stack_name = "sam-test"
+s3_prefix = "sam-test"
+region = "eu-north-1"
+profile = "AWS-TUTORIALS"
+image_repositories = []
+disable_rollback = true
 
 [default.package.parameters]
 resolve_s3 = true
