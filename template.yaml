@@ -22,7 +22,20 @@ Resources:
           Properties:
             Path: /feedback
             Method: get
-
+  PostFeedbackFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: feedback/
+      Handler: app.postFeedback
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      Events:
+        PostFeedback:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /feedback
+            Method: POST
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -32,5 +45,8 @@ Outputs:
     Description: "API Gateway endpoint URL for Prod stage for Feedback function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/feedback/"
   GetFeedbackFunction:
-    Description: "Feedback Lambda Function ARN"
+    Description: "GET Feedback Lambda Function ARN"
     Value: !GetAtt GetFeedbackFunction.Arn
+  PostFeedbackFunction:
+    Description: "POST Feedback Lambda Function ARN"
+    Value: !GetAtt PostFeedbackFunction.Arn

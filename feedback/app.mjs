@@ -24,3 +24,17 @@ export const lambdaHandler = async (event, context) => {
         return err;
     }
 };
+
+export const postFeedback = async (event, context) => {
+    try {
+        return {
+            'statusCode': 200,
+            'body': JSON.stringify({
+                message: 'Your feedback was received!!',
+            })
+        }
+    } catch (err) {
+        console.log(err);
+        return err;
+    }
+};
