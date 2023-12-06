@@ -7,10 +7,20 @@ Globals:
   Function:
     Timeout: 3
 
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
 Resources:
+  MyApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
   GetFeedbackFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
+      FunctionName: !Sub ${AWS::StackName}-getFeedbackLambda
       CodeUri: feedback/
       Handler: app.lambdaHandler
       Runtime: nodejs18.x
@@ -21,10 +31,12 @@ Resources:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /feedback
-            Method: get
+            Method: GET
+            RestApiId: !Ref MyApiGateway
   PostFeedbackFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
+      FunctionName: !Sub ${AWS::StackName}-postFeedbackLambda
       CodeUri: feedback/
       Handler: app.postFeedback
       Runtime: nodejs18.x
@@ -36,14 +48,14 @@ Resources:
           Properties:
             Path: /feedback
             Method: POST
-
+            RestApiId: !Ref MyApiGateway
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  AppApi:
+  MyApiGateway:
     Description: "API Gateway endpoint URL for Prod stage for Feedback function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/feedback/"
+    Value: !Sub "https://${MyApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/feedback/"
   GetFeedbackFunction:
     Description: "GET Feedback Lambda Function ARN"
     Value: !GetAtt GetFeedbackFunction.Arn

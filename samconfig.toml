@@ -23,6 +23,7 @@ region = "eu-north-1"
 profile = "AWS-TUTORIALS"
 image_repositories = []
 disable_rollback = true
+parameter_overrides = "Stage=\"dev\""
 
 [default.package.parameters]
 resolve_s3 = true
