@@ -11,14 +11,15 @@
  * 
  */
 
-export const lambdaHandler = async (event, context) => {
+export const postFeedback = async (event, context) => {
     let message 
-    const params = event.body
 
-    if(params.name){
-        message = `Hello ${params.name}!`;
+    const params = parsedRequestBody(event?.body);
+
+    if(params?.name){
+        message = `Hello ${params.name}! Your feedback has been received!`;
     } else{
-        message = `Who is there?`;
+        message = `Error: ${JSON.stringify(params)}. Something went wrong!`;
     }
 
     try {
@@ -27,17 +28,19 @@ export const lambdaHandler = async (event, context) => {
             'body': JSON.stringify({ message })
         }
     } catch (err) {
-        console.log(err);
-        return err;
+        return {
+            'statusCode': 400,
+            'body': err
+        }
     }
 };
 
-export const postFeedback = async (event, context) => {
+export const getFeedback = async (event, context) => {
     try {
         return {
             'statusCode': 200,
             'body': JSON.stringify({
-                message: 'Your feedback was received!!',
+                message: 'Feedback: This is your feedback.',
             })
         }
     } catch (err) {
@@ -45,3 +48,12 @@ export const postFeedback = async (event, context) => {
         return err;
     }
 };
+
+
+function parsedRequestBody(body) {
+    if(typeof body === 'string'){
+        return JSON.parse(body);
+    } else {
+        return JSON.parse(JSON.stringify(body));
+    }
+}
