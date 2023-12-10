@@ -22,7 +22,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${AWS::StackName}-getFeedbackLambda
       CodeUri: feedback/
-      Handler: app.lambdaHandler
+      Handler: app.getFeedback
       Runtime: nodejs18.x
       Architectures:
         - x86_64
