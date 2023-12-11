@@ -12,13 +12,12 @@
  */
 
 export const postFeedback = async (event, context) => {
-    let message 
-
+    let message
     const params = parsedRequestBody(event?.body);
 
     if(params?.name){
         message = `Hello ${params.name}! Your feedback has been received!`;
-    } else{
+    } else {
         message = `Error: ${JSON.stringify(params)}. Something went wrong!`;
     }
 
