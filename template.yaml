@@ -1,40 +1,47 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: My lambda function to be connected with a react app!
-  
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 3
-
+    Timeout: 15
 Parameters:
-  Stage:
+  STAGE:
     Type: String
     Default: dev
-
+  DynamoDB:
+    Type: String
+    Default: FeedbackDB
 Resources:
   MyApiGateway:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: !Ref Stage
+      StageName: !Ref STAGE
   GetFeedbackFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub ${AWS::StackName}-getFeedbackLambda
       CodeUri: feedback/
+      Environment:
+        Variables:
+          DynamoTable: !Ref MyDynamoDBTable
+          DynamoTableARN: !GetAtt MyDynamoDBTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MyDynamoDBTable
       Handler: app.getFeedback
       Runtime: nodejs18.x
       Architectures:
         - x86_64
+      MemorySize: 256
       Events:
         GetFeedback:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /feedback
             Method: GET
             RestApiId: !Ref MyApiGateway
   PostFeedbackFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub ${AWS::StackName}-postFeedbackLambda
       CodeUri: feedback/
@@ -44,7 +51,7 @@ Resources:
         - x86_64
       Events:
         PostFeedback:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /feedback
             Method: POST
@@ -52,7 +59,7 @@ Resources:
   MyDynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub ${AWS::StackName}-FeedbackDB
+      TableName: !Ref DynamoDB
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
@@ -61,18 +68,15 @@ Resources:
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   MyApiGateway:
-    Description: "API Gateway endpoint URL for Prod stage for Feedback function"
-    Value: !Sub "https://${MyApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/feedback/"
+    Description: API Gateway endpoint URL for Prod stage for Feedback function
+    Value: !Sub https://${MyApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${STAGE}/feedback/
   GetFeedbackFunction:
-    Description: "GET Feedback Lambda Function ARN"
+    Description: GET Feedback Lambda Function ARN
     Value: !GetAtt GetFeedbackFunction.Arn
   PostFeedbackFunction:
-    Description: "POST Feedback Lambda Function ARN"
+    Description: POST Feedback Lambda Function ARN
     Value: !GetAtt PostFeedbackFunction.Arn
   MyDynamoDBTable:
-    Description: "DynamoDB table ARN"
+    Description: DynamoDB table ARN
     Value: !GetAtt MyDynamoDBTable.Arn
