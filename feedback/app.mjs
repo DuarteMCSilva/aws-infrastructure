@@ -11,7 +11,9 @@
  * 
  */
 import AWS from 'aws-sdk';
-let dynamoClient
+import { initialValues } from '../data/initial-data';
+
+let dynamoClient = new AWS.DynamoDB.DocumentClient();
 
 export const postFeedback = async (event, context) => {
     let message;
@@ -83,13 +85,7 @@ async function getItemById(id) {
 };
 
 function populateTable() {
-    dynamoClient = new AWS.DynamoDB.DocumentClient();
-    const TABLE_NAME = process.env.DynamoTable;
-    const initialValues = [
-        {"id": "1", "name": "John Doe", "feedback": "Hello! I liked the product"} ,
-        {"id": "2", "name": "Jane Smith", "feedback": "Excellent product."},
-        {"id": "3", "name": "Bob Johnson", "feedback": "Good enough!"} 
-      ]
+    const TABLE_NAME = process.env.DynamoTable; 
     try {
         initialValues.forEach( (item) => {
             const params = { 
