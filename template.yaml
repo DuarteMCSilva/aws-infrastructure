@@ -20,6 +20,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub ${AWS::StackName}-getFeedbackLambda
+      Description: Get feedback function
       CodeUri: feedback/
       Environment:
         Variables:
@@ -37,13 +38,14 @@ Resources:
         GetFeedback:
           Type: Api
           Properties:
-            Path: /feedback
+            Path: /feedback/{id}
             Method: GET
             RestApiId: !Ref MyApiGateway
   PostFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub ${AWS::StackName}-postFeedbackLambda
+      Description: Submit feedback function
       CodeUri: feedback/
       Handler: app.postFeedback
       Runtime: nodejs18.x

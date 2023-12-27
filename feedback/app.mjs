@@ -11,7 +11,12 @@
  * 
  */
 import AWS from 'aws-sdk';
-import { initialValues } from '../data/initial-data';
+
+const initialValues = [
+    {"id": "1", "name": "John Doe", "feedback": "Hello! I liked the product"} ,
+    {"id": "2", "name": "Jane Smith", "feedback": "Excellent product."},
+    {"id": "3", "name": "Bob Johnson", "feedback": "Good enough!"} 
+  ]
 
 let dynamoClient = new AWS.DynamoDB.DocumentClient();
 
@@ -39,9 +44,17 @@ export const postFeedback = async (event, context) => {
 };
 
 export const getFeedback = async (event, context) => {
-    populateTable();
+    await populateTable();
     try {
-        const response = await getItemById("1");
+        const id = ''+ event.pathParameters.id;
+        const response = await getItemById(id);
+
+        if(!response) {
+            return  {
+                'statusCode': 404,
+                'body': JSON.stringify({message: 'Not found!'})
+            }
+        }
         return {
             'statusCode': 200,
             'body': JSON.stringify({
@@ -57,14 +70,6 @@ export const getFeedback = async (event, context) => {
                 message: 'dynamo.DynamoDB',
             })
         }
-    }
-};
-
-function parsedRequestBody(body) {
-    if(typeof body === 'string'){
-        return JSON.parse(body);
-    } else {
-        return JSON.parse(JSON.stringify(body));
     }
 };
 
@@ -84,7 +89,21 @@ async function getItemById(id) {
     }).catch( (err) => err );
 };
 
-function populateTable() {
+function parsedRequestBody(body) {
+    if(typeof body === 'string'){
+        return JSON.parse(body);
+    } else {
+        return JSON.parse(JSON.stringify(body));
+    }
+};
+
+async function populateTable() {
+    const response = await getItemById("1");
+
+    if(response){
+        return;
+    }
+
     const TABLE_NAME = process.env.DynamoTable; 
     try {
         initialValues.forEach( (item) => {
@@ -92,13 +111,15 @@ function populateTable() {
                 TableName: TABLE_NAME,
                 Item: item
             }
-            dynamoClient.put(params, function(err, data) {
-                if (err){
+            dynamoClient.put(params, function (err, data) {
+                if (err) {
                     console.log(TABLE_NAME);
-                    console.log(err)}
+                    console.log(err);
+                }
                 else console.log(data);
             })
         } )
+        console.log("Log from populate: Success!");
     } catch (err) {
         console.log("Log from populate: " + err);
     }
