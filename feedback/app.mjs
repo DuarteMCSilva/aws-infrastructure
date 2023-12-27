@@ -11,35 +11,16 @@
  * 
  */
 import AWS from 'aws-sdk';
-
-const initialValues = [
-    {"id": "1", "name": "John Doe", "feedback": "Hello! I liked the product"} ,
-    {"id": "2", "name": "Jane Smith", "feedback": "Excellent product."},
-    {"id": "3", "name": "Bob Johnson", "feedback": "Good enough!"} 
-  ]
-
 let dynamoClient = new AWS.DynamoDB.DocumentClient();
 
-export const postFeedback = async (event, context) => {
-    let message;
-    const params = parsedRequestBody(event?.body);
 
-    if(params?.name){
-        message = `Hello ${params.name}! Your feedback has been received!`;
+const putCallback = (err, data) => {
+    if(err){
+        throw new Error(`Failed to persist!`);
     } else {
-        message = `Error: ${JSON.stringify(params)}. Something went wrong!`;
-    }
-
-    try {
-        return {
-            'statusCode': 200,
-            'body': JSON.stringify({ message })
-        }
-    } catch (err) {
-        return {
-            'statusCode': 400,
-            'body': err
-        }
+        console.log(data);
+        console.log("Success!");
+        nextId++;
     }
 };
 
@@ -89,7 +70,91 @@ async function getItemById(id) {
     }).catch( (err) => err );
 };
 
+async function populateTable() {
+    const response = await getItemById("1");
+
+    const initialValues = [
+        {"id": "1", "name": "John Doe", "feedback": "Hello! I liked the product"} ,
+        {"id": "2", "name": "Jane Smith", "feedback": "Excellent product."},
+        {"id": "3", "name": "Bob Johnson", "feedback": "Good enough!"} 
+      ]
+
+    if(response){
+        return;
+    }
+
+    try {
+        initialValues.forEach( (item) => {
+            const params = { 
+                TableName: TABLE_NAME,
+                Item: item
+            }
+            dynamoClient.put(params, putCallback);
+        } )
+        console.log("Log from populate: Success!");
+    } catch (err) {
+        console.log("Log from populate: " + err);
+    }
+}
+
+export const postFeedback = async (event, context) => {
+    let nextId = 4; // TODO: improve to UUID!
+    dynamoClient = new AWS.DynamoDB.DocumentClient();
+    const TABLE_NAME = process.env.DynamoTable;
+
+    if (!TABLE_NAME || !dynamoClient) {
+        console.log(TABLE_NAME);
+        console.log(dynamoClient);
+        return {
+            'statusCode': 500,
+            'body': "Environment Error!"
+        }
+    }
+
+    const params = parsedRequestBody(event?.body);
+
+    const id = nextId + '';
+    const userName = params?.name;
+    const feedback = params?.feedback;
+
+    if( !params || !userName || !feedback ) {
+        return {
+            'statusCode': 400,
+            'body': "Invalid input format!"
+        }
+    }
+
+    try {
+        const newEntry = {
+            id: id,
+            name: userName,
+            feedback: feedback
+        }
+
+        const input =  { 
+            TableName: TABLE_NAME,
+            Item: newEntry
+        }
+
+        console.log("Valid input")
+        console.log(input);
+
+        dynamoClient.put( input, putCallback )
+        return {
+            'statusCode': 200,
+            'body': JSON.stringify({ input })
+        }
+    } catch (err) {
+        return {
+            'statusCode': 400,
+            'body': err
+        }
+    }
+};
+
+
 function parsedRequestBody(body) {
+    if(!body) return '';
     if(typeof body === 'string'){
         return JSON.parse(body);
     } else {
@@ -97,30 +162,3 @@ function parsedRequestBody(body) {
     }
 };
 
-async function populateTable() {
-    const response = await getItemById("1");
-
-    if(response){
-        return;
-    }
-
-    const TABLE_NAME = process.env.DynamoTable; 
-    try {
-        initialValues.forEach( (item) => {
-            const params = { 
-                TableName: TABLE_NAME,
-                Item: item
-            }
-            dynamoClient.put(params, function (err, data) {
-                if (err) {
-                    console.log(TABLE_NAME);
-                    console.log(err);
-                }
-                else console.log(data);
-            })
-        } )
-        console.log("Log from populate: Success!");
-    } catch (err) {
-        console.log("Log from populate: " + err);
-    }
-}
