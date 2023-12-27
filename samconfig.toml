@@ -17,13 +17,13 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
-stack_name = "sam-test"
-s3_prefix = "sam-test"
+stack_name = "sam-task-0001"
+s3_prefix = "sam-task-0001"
 region = "eu-north-1"
 profile = "AWS-TUTORIALS"
 image_repositories = []
 disable_rollback = true
-parameter_overrides = "Stage=\"dev\""
+parameter_overrides = "STAGE=\"dev\" DynamoDB=\"FeedbackDB\""
 
 [default.package.parameters]
 resolve_s3 = true
