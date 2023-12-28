@@ -33,7 +33,7 @@ Resources:
       Runtime: nodejs18.x
       Architectures:
         - x86_64
-      MemorySize: 256
+      MemorySize: 128
       Events:
         GetFeedback:
           Type: Api
@@ -58,9 +58,9 @@ Resources:
       Runtime: nodejs18.x
       Architectures:
         - x86_64
-      MemorySize: 256
+      MemorySize: 128
       Events:
-        GetFeedback:
+        ListFeedback:
           Type: Api
           Properties:
             Path: /feedback
@@ -89,6 +89,31 @@ Resources:
           Properties:
             Path: /feedback
             Method: POST
+            RestApiId: !Ref MyApiGateway
+  DeleteFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-deleteFeedbackLambda
+      Description: Delete feedback function
+      CodeUri: feedback/
+      Environment:
+        Variables:
+          DynamoTable: !Ref MyDynamoDBTable
+          DynamoTableARN: !GetAtt MyDynamoDBTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MyDynamoDBTable
+      Handler: app.deleteFeedback
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Events:
+        DeleteFeedback:
+          Type: Api
+          Properties:
+            Path: /feedback/{id}
+            Method: DELETE
             RestApiId: !Ref MyApiGateway
   MyDynamoDBTable:
     Type: AWS::DynamoDB::Table
