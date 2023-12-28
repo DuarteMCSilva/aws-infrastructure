@@ -49,7 +49,7 @@ export const getFeedback = async (event, context) => {
         return {
             'statusCode': 400,
             'body': JSON.stringify({
-                message: 'dynamo.DynamoDB',
+                message: 'Some error occurred',
             })
         }
     }
@@ -126,6 +126,42 @@ export const listFeedback = async (event, context) => {
         'body': JSON.stringify( result.Items )
     }
 }
+
+export const deleteFeedback = async (event, context) => {
+    try {
+        const id = ''+ event.pathParameters.id;
+        const response = await deleteItemById(id);
+        return {
+            'statusCode': 200,
+            'body': JSON.stringify({
+                message: 'Deleted item!',
+                response: response
+            })
+        }
+    } catch (err) {
+        console.log(err);
+        return {
+            'statusCode': 400,
+            'body': JSON.stringify({
+                message: 'Some error occurred',
+            })
+        }
+    }
+};
+
+async function deleteItemById(id) {
+    const params = {
+        Key: {
+            id : id
+        },
+        TableName: DYNAMO_TABLE
+    }
+
+    return dynamoClient.delete(params).promise()
+        .then( result => {
+            return result.Item;
+    }).catch( (err) => err );
+};
 
 function parsedRequestBody(body) {
     if(!body) return '';
