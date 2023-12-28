@@ -13,7 +13,7 @@
 import AWS from 'aws-sdk';
 let dynamoClient = new AWS.DynamoDB.DocumentClient();
 const DYNAMO_TABLE = process.env.DynamoTable;
-let nextId = 5; // TODO: improve to UUID!
+let nextId = 5; // TODO: Decide what is the best approach for primary key (UUID or other).
 
 const putCallback = (err, data) => {
     if(err){
