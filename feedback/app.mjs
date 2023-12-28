@@ -115,6 +115,18 @@ export const postFeedback = async (event, context) => {
     }
 };
 
+export const listFeedback = async (event, context) => {
+    const params = {
+        TableName: DYNAMO_TABLE
+    }
+    const result = await dynamoClient.scan(params, putCallback).promise();
+
+    return {
+        'statusCode': 200,
+        'body': JSON.stringify( result.Items )
+    }
+}
+
 function parsedRequestBody(body) {
     if(!body) return '';
     if(typeof body === 'string'){
