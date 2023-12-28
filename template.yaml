@@ -47,6 +47,13 @@ Resources:
       FunctionName: !Sub ${AWS::StackName}-postFeedbackLambda
       Description: Submit feedback function
       CodeUri: feedback/
+      Environment:
+        Variables:
+          DynamoTable: !Ref MyDynamoDBTable
+          DynamoTableARN: !GetAtt MyDynamoDBTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MyDynamoDBTable
       Handler: app.postFeedback
       Runtime: nodejs18.x
       Architectures:
