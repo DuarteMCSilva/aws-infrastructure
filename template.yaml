@@ -41,6 +41,31 @@ Resources:
             Path: /feedback/{id}
             Method: GET
             RestApiId: !Ref MyApiGateway
+  ListFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-listFeedbackLambda
+      Description: List all feedback function
+      CodeUri: feedback/
+      Environment:
+        Variables:
+          DynamoTable: !Ref MyDynamoDBTable
+          DynamoTableARN: !GetAtt MyDynamoDBTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MyDynamoDBTable
+      Handler: app.listFeedback
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 256
+      Events:
+        GetFeedback:
+          Type: Api
+          Properties:
+            Path: /feedback
+            Method: GET
+            RestApiId: !Ref MyApiGateway
   PostFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
